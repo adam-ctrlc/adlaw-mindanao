@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@apollo/client";
+import { GET_WEATHER_DATA } from "@/lib/queries";
 import {
   Search,
   Thermometer,
@@ -15,41 +17,22 @@ import {
 } from "lucide-react";
 
 export default function Page() {
-  const [weatherData, setWeatherData] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
-    return today.toISOString().split('T')[0];
+    return today.toISOString().split("T")[0];
   });
-  const [isRateLimited, setIsRateLimited] = useState(false);
 
-  useEffect(() => {
-    const fetchWeatherData = async () => {
-      try {
-        const url = selectedDate
-          ? `/api/v1/weather?date=${selectedDate}`
-          : "/api/v1/weather";
-        const res = await fetch(url);
-        const data = await res.json();
+  const { loading, error, data } = useQuery(GET_WEATHER_DATA, {
+    variables: { date: selectedDate || undefined },
+    errorPolicy: "all",
+  });
 
-        if (res.status === 429 && data.errorType === "RATE_LIMITED") {
-          setIsRateLimited(true);
-          setLoading(false);
-          return;
-        }
+  const isRateLimited = error?.graphQLErrors?.some(
+    (err) => err.extensions?.code === "RATE_LIMITED"
+  );
 
-        setIsRateLimited(false);
-        setWeatherData(data);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error loading weather data", err);
-        setLoading(false);
-      }
-    };
-
-    fetchWeatherData();
-  }, [selectedDate]);
+  const weatherData = data?.weather || [];
 
   const filteredData = Array.isArray(weatherData)
     ? weatherData.filter((entry) =>

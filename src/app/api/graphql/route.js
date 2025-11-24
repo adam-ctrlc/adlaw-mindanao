@@ -5,6 +5,7 @@ import { gql } from "graphql-tag";
 const typeDefs = gql`
   type Query {
     weather(date: String): [WeatherEntry]
+    currentDate: String
   }
 
   type WeatherEntry {
@@ -65,6 +66,11 @@ function isRateLimited(ip) {
 
 const resolvers = {
   Query: {
+    currentDate: () => {
+      return new Date().toLocaleDateString("en-CA", {
+        timeZone: "Asia/Manila",
+      });
+    },
     weather: async (_, { date }, context) => {
       const { request } = context;
       const forwarded = request.headers.get("x-forwarded-for");

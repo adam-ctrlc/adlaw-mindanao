@@ -2,6 +2,7 @@ import { gql } from "@apollo/client";
 
 export const GET_WEATHER_DATA = gql`
   query GetWeatherData($date: String) {
+    currentDate
     weather(date: $date) {
       city
       location {

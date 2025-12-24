@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Atmosphere - Weather Intelligence</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#137fec",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              display: ["Space Grotesk", "sans-serif"],
+              body: ["Noto Sans", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              "2xl": "1rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .glass-panel {
+        background: rgba(16, 25, 34, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .radar-grid {
+        background-image: linear-gradient(
+            rgba(255, 255, 255, 0.05) 1px,
+            transparent 1px
+          ),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-x-hidden antialiased"
+  >
+    <div class="flex flex-col min-h-screen w-full">
+      <div class="relative w-full bg-background-dark">
+        <div class="absolute inset-0 z-0 h-full w-full">
+          <div
+            class="w-full h-full bg-cover bg-center"
+            data-alt="Dramatic cloudy sky with sunlight breaking through dark clouds"
+            style="
+              background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBfeikpeJaVKB8L8QHXQrlp9ukoX1FwZD_is4gu3svPa5RoL1uc8wbt77gHkPtghVpvcpX6peHPWC7FA3afiqqA3-zgSuseUKRp7_pMIN4A-SKbn8cgjSq9X35LsZJ5N817c7_mSf5Qo0s-DFXkPBUE1cRQPyZMI9d6ilJhBva_Yrof1LrE0Gdk19xJkQWOymSRTosrgDSbR17Vg0_XvGKwdnp0kA5kCDgWrPNENRdgtCejP94TtBxaPq3EKQ8wzL5obBqZmaQuHHsn');
+            "
+          ></div>
+          <div
+            class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background-dark"
+          ></div>
+        </div>
+        <header
+          class="relative z-20 w-full px-6 py-4 lg:px-12 border-b border-white/10"
+        >
+          <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div
+                class="flex items-center justify-center size-10 rounded-lg bg-primary/20 text-primary backdrop-blur-sm"
+              >
+                <span class="material-symbols-outlined text-2xl">cyclone</span>
+              </div>
+              <span class="text-xl font-bold tracking-tight text-white"
+                >Atmosphere</span
+              >
+            </div>
+            <nav class="hidden md:flex items-center gap-8">
+              <a
+                class="text-sm font-medium text-white/80 hover:text-white transition-colors"
+                href="#"
+                >Radar</a
+              >
+              <a
+                class="text-sm font-medium text-white/80 hover:text-white transition-colors"
+                href="#"
+                >Maps</a
+              >
+              <a
+                class="text-sm font-medium text-white/80 hover:text-white transition-colors"
+                href="#"
+                >News</a
+              >
+              <a
+                class="text-sm font-medium text-white/80 hover:text-white transition-colors"
+                href="#"
+                >Alerts</a
+              >
+            </nav>
+            <div class="flex items-center gap-4">
+              <button
+                class="hidden md:flex text-white hover:text-primary transition-colors"
+              >
+                <span class="material-symbols-outlined">search</span>
+              </button>
+              <button
+                class="flex items-center justify-center h-10 px-5 rounded-lg bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20 hover:bg-blue-600 transition-all"
+              >
+                Sign In
+              </button>
+            </div>
+          </div>
+        </header>
+        <section
+          class="relative z-10 w-full flex flex-col items-center px-6 py-16 lg:px-12 lg:py-24"
+        >
+          <div
+            class="max-w-7xl w-full grid lg:grid-cols-2 gap-12 lg:gap-20 items-center"
+          >
+            <div class="flex flex-col gap-8 text-center lg:text-left">
+              <div class="space-y-4">
+                <div
+                  class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 w-fit mx-auto lg:mx-0 backdrop-blur-sm"
+                >
+                  <span
+                    class="flex h-2 w-2 rounded-full bg-green-400 animate-pulse"
+                  ></span>
+                  <span
+                    class="text-xs font-medium text-white/90 uppercase tracking-wider"
+                    >Live Updates</span
+                  >
+                </div>
+                <h1
+                  class="text-5xl lg:text-7xl font-bold leading-[1.1] tracking-tight text-white"
+                >
+                  Weather Intelligence <br />
+                  <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-primary"
+                    >For Your Day</span
+                  >
+                </h1>
+                <p
+                  class="text-lg text-white/70 max-w-xl mx-auto lg:mx-0 font-body"
+                >
+                  Get real-time hyper-local forecasts, severe weather alerts,
+                  and deep climate insights for any location worldwide.
+                </p>
+              </div>
+              <div class="w-full max-w-lg mx-auto lg:mx-0">
+                <label
+                  class="relative flex items-center w-full h-14 rounded-xl shadow-2xl overflow-hidden focus-within:ring-2 focus-within:ring-primary transition-all"
+                >
+                  <div
+                    class="absolute left-0 pl-4 flex items-center pointer-events-none text-white/50"
+                  >
+                    <span class="material-symbols-outlined">location_on</span>
+                  </div>
+                  <input
+                    class="w-full h-full pl-12 pr-36 bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/50 focus:outline-none focus:bg-white/20 transition-colors"
+                    placeholder="Search city or zip code..."
+                    type="text"
+                  />
+                  <div class="absolute right-1 top-1 bottom-1">
+                    <button
+                      class="h-full px-6 rounded-lg bg-primary hover:bg-blue-600 text-white font-bold text-sm transition-colors flex items-center gap-2"
+                    >
+                      <span>Search</span>
+                    </button>
+                  </div>
+                </label>
+                <div
+                  class="mt-3 flex items-center justify-center lg:justify-start gap-4 text-sm text-white/40"
+                >
+                  <span>Popular:</span>
+                  <button class="hover:text-primary transition-colors">
+                    Davao
+                  </button>
+                  <button class="hover:text-primary transition-colors">
+                    Cagayan
+                  </button>
+                  <button class="hover:text-primary transition-colors">
+                    General Santos
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="relative w-full max-w-md mx-auto lg:ml-auto">
+              <div
+                class="absolute -top-12 -right-12 w-64 h-64 bg-primary/30 rounded-full blur-3xl"
+              ></div>
+              <div
+                class="glass-panel relative rounded-2xl p-6 md:p-8 shadow-2xl text-white"
+              >
+                <div class="flex justify-between items-start mb-8">
+                  <div>
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                      Davao City
+                      <span
+                        class="material-symbols-outlined text-primary text-base"
+                        >near_me</span
+                      >
+                    </h2>
+                    <p class="text-white/60 text-sm mt-1">Today, 10:23 AM</p>
+                  </div>
+                  <div
+                    class="px-3 py-1 rounded-full bg-primary/20 border border-primary/30 text-primary text-xs font-bold uppercase tracking-wider"
+                  >
+                    Current
+                  </div>
+                </div>
+                <div class="flex items-center justify-between mb-8">
+                  <div class="flex flex-col">
+                    <span class="text-7xl font-bold tracking-tighter">31°</span>
+                    <span class="text-lg font-medium text-white/80 ml-1"
+                      >Partly Cloudy</span
+                    >
+                  </div>
+                  <div class="text-yellow-400">
+                    <span
+                      class="material-symbols-outlined text-[80px]"
+                      style="font-variation-settings: 'FILL' 1"
+                      >partly_cloudy_day</span
+                    >
+                  </div>
+                </div>
+                <div
+                  class="h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent mb-6"
+                ></div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div
+                    class="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+                  >
+                    <div
+                      class="size-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400"
+                    >
+                      <span class="material-symbols-outlined">water_drop</span>
+                    </div>
+                    <div>
+                      <p class="text-xs text-white/50 uppercase font-bold">
+                        Humidity
+                      </p>
+                      <p class="text-lg font-bold">78%</p>
+                    </div>
+                  </div>
+                  <div
+                    class="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+                  >
+                    <div
+                      class="size-10 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-400"
+                    >
+                      <span class="material-symbols-outlined">air</span>
+                    </div>
+                    <div>
+                      <p class="text-xs text-white/50 uppercase font-bold">
+                        Wind
+                      </p>
+                      <p class="text-lg font-bold">8 mph</p>
+                    </div>
+                  </div>
+                  <div
+                    class="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+                  >
+                    <div
+                      class="size-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400"
+                    >
+                      <span class="material-symbols-outlined">wb_sunny</span>
+                    </div>
+                    <div>
+                      <p class="text-xs text-white/50 uppercase font-bold">
+                        UV Index
+                      </p>
+                      <p class="text-lg font-bold">Extreme</p>
+                    </div>
+                  </div>
+                  <div
+                    class="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+                  >
+                    <div
+                      class="size-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400"
+                    >
+                      <span class="material-symbols-outlined">visibility</span>
+                    </div>
+                    <div>
+                      <p class="text-xs text-white/50 uppercase font-bold">
+                        Visibility
+                      </p>
+                      <p class="text-lg font-bold">9 mi</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <section
+        class="relative z-10 bg-[#0B1116] w-full px-6 py-16 lg:px-12 border-t border-white/5"
+      >
+        <div class="max-w-7xl w-full mx-auto">
+          <div
+            class="flex items-center justify-between mb-8 pb-4 border-b border-white/5"
+          >
+            <div>
+              <h3 class="text-3xl font-bold text-white flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-3xl"
+                  >map</span
+                >
+                Weather in Mindanao
+              </h3>
+              <p class="text-white/60 mt-1">
+                Real-time conditions across major cities and areas
+              </p>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div
+              class="glass-card rounded-2xl p-6 hover:bg-white/10 transition-all cursor-pointer group"
+            >
+              <div class="flex justify-between items-start mb-6">
+                <div>
+                  <h4
+                    class="text-xl font-bold text-white group-hover:text-yellow-400 transition-colors"
+                  >
+                    Cagayan de Oro
+                  </h4>
+                  <p class="text-sm text-white/50 flex items-center gap-1 mt-1">
+                    <span class="material-symbols-outlined text-sm"
+                      >location_on</span
+                    >
+                    Misamis Oriental
+                  </p>
+                </div>
+                <div class="p-2 rounded-lg bg-yellow-400/10">
+                  <span
+                    class="material-symbols-outlined text-yellow-400 text-3xl"
+                    style="font-variation-settings: 'FILL' 1"
+                    >sunny</span
+                  >
+                </div>
+              </div>
+              <div class="flex items-end justify-between">
+                <div>
+                  <span class="text-5xl font-bold text-white tracking-tighter"
+                    >32°</span
+                  >
+                  <span class="text-base font-medium text-white/80 block mt-1"
+                    >Sunny</span
+                  >
+                </div>
+                <div class="text-right space-y-1">
+                  <div
+                    class="flex items-center gap-2 text-sm text-white/60 justify-end"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >water_drop</span
+                    >
+                    72%
+                  </div>
+                  <div
+                    class="flex items-center gap-2 text-sm text-white/60 justify-end"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >air</span
+                    >
+                    12 km/h
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="glass-card rounded-2xl p-6 hover:bg-white/10 transition-all cursor-pointer group"
+            >
+              <div class="flex justify-between items-start mb-6">
+                <div>
+                  <h4
+                    class="text-xl font-bold text-white group-hover:text-gray-300 transition-colors"
+                  >
+                    General Santos
+                  </h4>
+                  <p class="text-sm text-white/50 flex items-center gap-1 mt-1">
+                    <span class="material-symbols-outlined text-sm"
+                      >location_on</span
+                    >
+                    South Cotabato
+                  </p>
+                </div>
+                <div class="p-2 rounded-lg bg-white/10">
+                  <span
+                    class="material-symbols-outlined text-gray-300 text-3xl"
+                    style="font-variation-settings: 'FILL' 1"
+                    >cloud</span
+                  >
+                </div>
+              </div>
+              <div class="flex items-end justify-between">
+                <div>
+                  <span class="text-5xl font-bold text-white tracking-tighter"
+                    >29°</span
+                  >
+                  <span class="text-base font-medium text-white/80 block mt-1"
+                    >Cloudy</span
+                  >
+                </div>
+                <div class="text-right space-y-1">
+                  <div
+                    class="flex items-center gap-2 text-sm text-white/60 justify-end"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >water_drop</span
+                    >
+                    81%
+                  </div>
+                  <div
+                    class="flex items-center gap-2 text-sm text-white/60 justify-end"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >air</span
+                    >
+                    9 km/h
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="glass-card rounded-2xl p-6 hover:bg-white/10 transition-all cursor-pointer group"
+            >
+              <div class="flex justify-between items-start mb-6">
+                <div>
+                  <h4
+                    class="text-xl font-bold text-white group-hover:text-blue-400 transition-colors"
+                  >
+                    Zamboanga
+                  </h4>
+                  <p class="text-sm text-white/50 flex items-center gap-1 mt-1">
+                    <span class="material-symbols-outlined text-sm"
+                      >location_on</span
+                    >
+                    Zamboanga del Sur
+                  </p>
+                </div>
+                <div class="p-2 rounded-lg bg-blue-400/10">
+                  <span
+                    class="material-symbols-outlined text-blue-400 text-3xl"
+                    style="font-variation-settings: 'FILL' 1"
+                    >rainy</span
+                  >
+                </div>
+              </div>
+              <div class="flex items-end justify-between">
+                <div>
+                  <span class="text-5xl font-bold text-white tracking-tighter"
+                    >28°</span
+                  >
+                  <span class="text-base font-medium text-white/80 block mt-1"
+                    >Light Rain</span
+                  >
+                </div>
+                <div class="text-right space-y-1">
+                  <div
+                    class="flex items-center gap-2 text-sm text-white/60 justify-end"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >water_drop</span
+                    >
+                    88%
+                  </div>
+                  <div
+                    class="flex items-center gap-2 text-sm text-white/60 justify-end"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >air</span
+                    >
+                    15 km/h
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="glass-card rounded-2xl p-6 hover:bg-white/10 transition-all cursor-pointer group"
+            >
+              <div class="flex justify-between items-start mb-6">
+                <div>
+                  <h4
+                    class="text-xl font-bold text-white group-hover:text-orange-300 transition-colors"
+                  >
+                    Butuan
+                  </h4>
+                  <p class="text-sm text-white/50 flex items-center gap-1 mt-1">
+                    <span class="material-symbols-outlined text-sm"
+                      >location_on</span
+                    >
+                    Agusan del Norte
+                  </p>
+                </div>
+                <div class="p-2 rounded-lg bg-orange-300/10">
+                  <span
+                    class="material-symbols-outlined text-orange-300 text-3xl"
+                    style="font-variation-settings: 'FILL' 1"
+                    >partly_cloudy_day</span
+                  >
+                </div>
+              </div>
+              <div class="flex items-end justify-between">
+                <div>
+                  <span class="text-5xl font-bold text-white tracking-tighter"
+                    >30°</span
+                  >
+                  <span class="text-base font-medium text-white/80 block mt-1"
+                    >Partly Cloudy</span
+                  >
+                </div>
+                <div class="text-right space-y-1">
+                  <div
+                    class="flex items-center gap-2 text-sm text-white/60 justify-end"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >water_drop</span
+                    >
+                    76%
+                  </div>
+                  <div
+                    class="flex items-center gap-2 text-sm text-white/60 justify-end"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >air</span
+                    >
+                    7 km/h
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="glass-card rounded-2xl p-6 hover:bg-white/10 transition-all cursor-pointer group"
+            >
+              <div class="flex justify-between items-start mb-6">
+                <div>
+                  <h4
+                    class="text-xl font-bold text-white group-hover:text-purple-400 transition-colors"
+                  >
+                    Iligan
+                  </h4>
+                  <p class="text-sm text-white/50 flex items-center gap-1 mt-1">
+                    <span class="material-symbols-outlined text-sm"
+                      >location_on</span
+                    >
+                    Lanao del Norte
+                  </p>
+                </div>
+                <div class="p-2 rounded-lg bg-purple-400/10">
+                  <span
+                    class="material-symbols-outlined text-purple-400 text-3xl"
+                    style="font-variation-settings: 'FILL' 1"
+                    >thunderstorm</span
+                  >
+                </div>
+              </div>
+              <div class="flex items-end justify-between">
+                <div>
+                  <span class="text-5xl font-bold text-white tracking-tighter"
+                    >27°</span
+                  >
+                  <span class="text-base font-medium text-white/80 block mt-1"
+                    >Thunderstorms</span
+                  >
+                </div>
+                <div class="text-right space-y-1">
+                  <div
+                    class="flex items-center gap-2 text-sm text-white/60 justify-end"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >water_drop</span
+                    >
+                    92%
+                  </div>
+                  <div
+                    class="flex items-center gap-2 text-sm text-white/60 justify-end"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >air</span
+                    >
+                    18 km/h
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="glass-card rounded-2xl p-6 hover:bg-white/10 transition-all cursor-pointer group"
+            >
+              <div class="flex justify-between items-start mb-6">
+                <div>
+                  <h4
+                    class="text-xl font-bold text-white group-hover:text-yellow-200 transition-colors"
+                  >
+                    Cotabato City
+                  </h4>
+                  <p class="text-sm text-white/50 flex items-center gap-1 mt-1">
+                    <span class="material-symbols-outlined text-sm"
+                      >location_on</span
+                    >
+                    Maguindanao
+                  </p>
+                </div>
+                <div class="p-2 rounded-lg bg-yellow-200/10">
+                  <span
+                    class="material-symbols-outlined text-yellow-200 text-3xl"
+                    style="font-variation-settings: 'FILL' 1"
+                    >wb_cloudy</span
+                  >
+                </div>
+              </div>
+              <div class="flex items-end justify-between">
+                <div>
+                  <span class="text-5xl font-bold text-white tracking-tighter"
+                    >31°</span
+                  >
+                  <span class="text-base font-medium text-white/80 block mt-1"
+                    >Mostly Cloudy</span
+                  >
+                </div>
+                <div class="text-right space-y-1">
+                  <div
+                    class="flex items-center gap-2 text-sm text-white/60 justify-end"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >water_drop</span
+                    >
+                    75%
+                  </div>
+                  <div
+                    class="flex items-center gap-2 text-sm text-white/60 justify-end"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >air</span
+                    >
+                    11 km/h
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section
+        class="relative z-10 bg-background-dark w-full px-6 py-16 lg:px-12 border-t border-white/5"
+      >
+        <div class="max-w-7xl w-full mx-auto">
+          <div class="flex items-center justify-between mb-8">
+            <h3 class="text-3xl font-bold text-white flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary text-3xl"
+                >radar</span
+              >
+              Weather Radar
+            </h3>
+            <div class="flex items-center gap-2">
+              <span
+                class="w-3 h-3 bg-red-500 rounded-full animate-pulse"
+              ></span>
+              <span class="text-white/60 text-sm font-medium"
+                >LIVE PRECIPITATION</span
+              >
+            </div>
+          </div>
+          <div
+            class="glass-panel w-full h-[500px] rounded-3xl relative overflow-hidden group"
+          >
+            <div
+              class="absolute inset-0 bg-[#0c141d] radar-grid opacity-80"
+            ></div>
+            <div
+              class="absolute top-1/2 left-1/3 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl mix-blend-screen animate-pulse duration-1000"
+            ></div>
+            <div
+              class="absolute bottom-1/3 right-1/4 w-64 h-64 bg-green-500/20 rounded-full blur-3xl mix-blend-screen"
+            ></div>
+            <div
+              class="absolute top-1/4 right-1/2 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl mix-blend-screen"
+            ></div>
+            <div class="absolute top-6 left-6 flex flex-col gap-2">
+              <button
+                class="w-10 h-10 bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-lg flex items-center justify-center text-white transition-colors"
+              >
+                <span class="material-symbols-outlined">add</span>
+              </button>
+              <button
+                class="w-10 h-10 bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-lg flex items-center justify-center text-white transition-colors"
+              >
+                <span class="material-symbols-outlined">remove</span>
+              </button>
+            </div>
+            <div class="absolute top-6 right-6">
+              <div
+                class="bg-white/10 backdrop-blur-md rounded-lg p-1 flex gap-1"
+              >
+                <button
+                  class="px-3 py-1.5 rounded bg-primary text-white text-xs font-bold"
+                >
+                  Rain
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded hover:bg-white/10 text-white/70 text-xs font-bold transition-colors"
+                >
+                  Wind
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded hover:bg-white/10 text-white/70 text-xs font-bold transition-colors"
+                >
+                  Clouds
+                </button>
+              </div>
+            </div>
+            <div
+              class="absolute bottom-6 left-6 right-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 flex items-center gap-4"
+            >
+              <button
+                class="w-10 h-10 rounded-full bg-primary hover:bg-blue-600 flex items-center justify-center text-white transition-colors shrink-0"
+              >
+                <span class="material-symbols-outlined text-xl"
+                  >play_arrow</span
+                >
+              </button>
+              <div
+                class="flex-1 relative h-1 bg-white/10 rounded-full overflow-hidden"
+              >
+                <div
+                  class="absolute top-0 left-0 h-full w-2/3 bg-gradient-to-r from-primary/50 to-primary"
+                ></div>
+              </div>
+              <span class="text-white/60 text-xs font-mono shrink-0"
+                >11:30 AM</span
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+      <section
+        class="relative z-10 bg-[#0B1116] w-full px-6 py-16 lg:px-12 border-t border-white/5"
+      >
+        <div class="max-w-7xl w-full mx-auto">
+          <div class="mb-10">
+            <h3 class="text-3xl font-bold text-white flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary text-3xl"
+                >public</span
+              >
+              Climate Overview
+            </h3>
+            <p class="text-white/60 mt-2 max-w-2xl">
+              General climate information for Mindanao, characterized by evenly
+              distributed rainfall throughout the year.
+            </p>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div
+              class="glass-card p-8 rounded-2xl border-l-4 border-l-orange-400 relative overflow-hidden"
+            >
+              <div class="absolute right-4 top-4 opacity-10">
+                <span class="material-symbols-outlined text-8xl text-orange-400"
+                  >thermostat</span
+                >
+              </div>
+              <div class="relative z-10">
+                <div
+                  class="w-12 h-12 rounded-full bg-orange-400/20 flex items-center justify-center text-orange-400 mb-6"
+                >
+                  <span class="material-symbols-outlined text-2xl"
+                    >device_thermostat</span
+                  >
+                </div>
+                <h4 class="text-xl font-bold text-white mb-2">
+                  Average Temperature
+                </h4>
+                <div class="text-4xl font-bold text-white mb-1">
+                  27°C - 32°C
+                </div>
+                <p class="text-white/50 text-sm">Annual Range</p>
+                <div class="mt-6 pt-6 border-t border-white/10">
+                  <p class="text-white/70 text-sm leading-relaxed">
+                    Mindanao enjoys a tropical climate with relatively stable
+                    temperatures year-round. Peaks are often observed during
+                    April and May.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="glass-card p-8 rounded-2xl border-l-4 border-l-blue-400 relative overflow-hidden"
+            >
+              <div class="absolute right-4 top-4 opacity-10">
+                <span class="material-symbols-outlined text-8xl text-blue-400"
+                  >water_drop</span
+                >
+              </div>
+              <div class="relative z-10">
+                <div
+                  class="w-12 h-12 rounded-full bg-blue-400/20 flex items-center justify-center text-blue-400 mb-6"
+                >
+                  <span class="material-symbols-outlined text-2xl"
+                    >umbrella</span
+                  >
+                </div>
+                <h4 class="text-xl font-bold text-white mb-2">
+                  Rainfall Patterns
+                </h4>
+                <div class="text-4xl font-bold text-white mb-1">Type IV</div>
+                <p class="text-white/50 text-sm">Climate Classification</p>
+                <div class="mt-6 pt-6 border-t border-white/10">
+                  <p class="text-white/70 text-sm leading-relaxed">
+                    Rainfall is more or less evenly distributed throughout the
+                    year. The region is generally outside the typhoon belt,
+                    making it distinct from Luzon.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="glass-card p-8 rounded-2xl border-l-4 border-l-green-400 relative overflow-hidden"
+            >
+              <div class="absolute right-4 top-4 opacity-10">
+                <span class="material-symbols-outlined text-8xl text-green-400"
+                  >calendar_month</span
+                >
+              </div>
+              <div class="relative z-10">
+                <div
+                  class="w-12 h-12 rounded-full bg-green-400/20 flex items-center justify-center text-green-400 mb-6"
+                >
+                  <span class="material-symbols-outlined text-2xl"
+                    >nature_people</span
+                  >
+                </div>
+                <h4 class="text-xl font-bold text-white mb-2">
+                  Seasonal Variations
+                </h4>
+                <div class="text-4xl font-bold text-white mb-1">Mild</div>
+                <p class="text-white/50 text-sm">Seasonal Impact</p>
+                <div class="mt-6 pt-6 border-t border-white/10">
+                  <p class="text-white/70 text-sm leading-relaxed">
+                    Unlike other parts of the Philippines, Mindanao experiences
+                    less pronounced dry and wet seasons, favoring agriculture
+                    year-round.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <footer
+        class="relative z-10 bg-background-dark border-t border-white/10 text-white/60 py-8 px-6 lg:px-12"
+      >
+        <div
+          class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6"
+        >
+          <p class="text-sm">
+            © 2024 Atmosphere Weather App. All rights reserved.
+          </p>
+          <div class="flex items-center gap-6">
+            <a class="hover:text-primary transition-colors" href="#"
+              >Privacy Policy</a
+            >
+            <a class="hover:text-primary transition-colors" href="#"
+              >Terms of Service</a
+            >
+          </div>
+          <div class="flex gap-4">
+            <a
+              class="p-2 rounded-full hover:bg-white/10 hover:text-white transition-colors"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-xl">public</span>
+            </a>
+            <a
+              class="p-2 rounded-full hover:bg-white/10 hover:text-white transition-colors"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-xl">share</span>
+            </a>
+            <a
+              class="p-2 rounded-full hover:bg-white/10 hover:text-white transition-colors"
+              href="#"
+            >
+              <span class="material-symbols-outlined text-xl">mail</span>
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

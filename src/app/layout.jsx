@@ -1,30 +1,40 @@
-import { Geist, Geist_Mono } from "next/font/google";
-import ApolloWrapper from "@/components/apollo-provider";
+import { Space_Grotesk, Noto_Sans } from "next/font/google";
 import "@/app/globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-display",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const notoSans = Noto_Sans({
+  variable: "--font-body",
   subsets: ["latin"],
+  weight: ["400", "500", "700"],
 });
 
 export const metadata = {
-  title: "Bai, Init Ba Karon? Tan-awa Ang Panahon",
+  title: "Atmosphere - Weather Intelligence",
   description:
-    "Check kung mo-ulan ba o init kaayo sa inyong lugar. Real-time weather updates across Mindanao para di ka mabiktima sa panahon.",
+    "Get real-time hyper-local forecasts, severe weather alerts, and deep climate insights for any location worldwide.",
+  icons: {
+    icon: "./logo.png",
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${spaceGrotesk.variable} ${notoSans.variable} bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-x-hidden antialiased`}
       >
-        <ApolloWrapper>{children}</ApolloWrapper>
+        {children}
       </body>
     </html>
   );

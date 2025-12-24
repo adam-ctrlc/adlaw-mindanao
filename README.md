@@ -1,51 +1,50 @@
-# Weather Mindanao 🌦️
+# Atmosphere - Mindanao Weather
 
-**Bai, Init Ba Karon? Tan-awa Ang Panahon**
-
-A real-time weather application for Mindanao cities with a touch of Bisaya humor. Built with Next.js and GraphQL, this app provides weather updates with local flavor and personality.
+A modern, real-time weather application for Mindanao cities built with Next.js 15. Features a sleek dark theme with glass morphism effects, interactive weather radar, and comprehensive climate insights.
 
 ## Features
 
-- 🌡️ **Real-time weather data** for multiple Mindanao cities
-- 📅 **14-day forecast** with date selection
-- 🔍 **City search** functionality
-- 🎭 **Bisaya weather commentary** with personality
-- 📱 **Responsive design** for all devices
-- ⚡ **GraphQL API** for efficient data fetching
-- 🛡️ **Rate limiting** protection
-- 🎨 **Modern UI** with Tailwind CSS
+- **Real-time weather data** for multiple Mindanao cities (sorted A-Z)
+- **Interactive weather radar** with layer selection (Rain, Wind, Clouds)
+- **Climate overview** with aggregated regional statistics
+- **Unit toggle** - Switch between Metric (°C, km/h) and Imperial (°F, mph) with a sleek toggle button in the header
+- **Auto-cycling hero panel** showcasing different cities every 10 seconds
+- **Live search** - Filter cities in real-time
+- **Responsive design** - Optimized for all devices (mobile, tablet, desktop)
+- **Rate limiting protection** - Prevents API abuse
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15, React 19, Tailwind CSS
-- **Backend**: GraphQL (Apollo Server), Next.js API Routes
-- **Data**: WeatherAPI.com
-- **Icons**: Lucide React
-- **Fonts**: Geist Sans & Mono
+- **Framework**: Next.js 15 (App Router with Turbopack)
+- **Styling**: Tailwind CSS 4
+- **Icons**: Material Symbols
+- **Fonts**: Space Grotesk (Display), Noto Sans (Body)
+- **API**: WeatherAPI.com
+- **State Management**: React Context (UnitContext)
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+
-- WeatherAPI.com API key
+- WeatherAPI.com API key (free tier available)
 
 ### Installation
 
-1. **Clone the repository**
+1. Clone the repository
 
    ```bash
    git clone https://github.com/adam-ctrlc/adlaw-mindanao.git
-   cd weather-mindanao
+   cd adlaw-mindanao
    ```
 
-2. **Install dependencies**
+2. Install dependencies
 
    ```bash
    npm install
    ```
 
-3. **Set up environment variables**
+3. Set up environment variables
 
    ```bash
    cp .env.example .env
@@ -55,63 +54,92 @@ A real-time weather application for Mindanao cities with a touch of Bisaya humor
 
    ```env
    WEATHER_API_KEY=your_weatherapi_key_here
-   MINDANAO_CITIES=Davao,Cagayan de Oro,Butuan,General Santos,Zamboanga,Cotabato
+   MINDANAO_CITIES=Butuan,Cagayan de Oro,Cotabato,Davao,General Santos,Zamboanga
    ```
 
-4. **Run the development server**
+4. Run the development server
 
    ```bash
    npm run dev
    ```
 
-5. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+5. Open [http://localhost:3000](http://localhost:3000)
 
-## API Documentation
+## Project Structure
 
-### GraphQL Endpoint
-
-The app uses GraphQL at `/api/graphql` with the following schema:
-
-```graphql
-type Query {
-  weather(date: String): [WeatherEntry]
-}
-
-type WeatherEntry {
-  city: String!
-  location: Location!
-  current: CurrentWeather!
-}
-
-type CurrentWeather {
-  temp_c: Float!
-  feelslike_c: Float!
-  humidity: Int!
-  cloud: Int!
-  wind_kph: Float!
-  wind_dir: String!
-  uv: Float!
-  vis_km: Float!
-  pressure_mb: Float!
-  last_updated: String!
-  condition: WeatherCondition!
-}
+```
+src/
+├── app/
+│   ├── api/
+│   │   └── weather/
+│   │       └── route.js          # REST API endpoint
+│   ├── globals.css               # Global styles & Tailwind theme
+│   ├── layout.jsx                # Root layout with fonts
+│   └── page.jsx                  # Main weather page
+├── components/
+│   ├── index.js                  # Barrel exports
+│   ├── layout/
+│   │   ├── index.js
+│   │   └── Header.jsx            # Navigation header + unit toggle
+│   ├── hero/
+│   │   ├── index.js
+│   │   ├── HeroWeatherPanel.jsx  # Featured city weather card
+│   │   └── SearchBar.jsx         # City search input
+│   └── weather/
+│       ├── index.js
+│       ├── WeatherCard.jsx       # Individual city weather card
+│       ├── WeatherRadar.jsx      # Interactive radar map
+│       └── ClimateOverview.jsx   # Regional climate stats
+├── config/
+│   └── index.js                  # App configuration
+├── context/
+│   └── UnitContext.jsx           # Unit system state (metric/imperial)
+├── hooks/
+│   └── useWeather.js             # Weather data fetching hook
+└── lib/
+    └── utils.js                  # Utility functions (conversions, etc.)
 ```
 
-### Example Query
+## API Endpoints
 
-```graphql
-query GetWeatherData($date: String) {
-  weather(date: $date) {
-    city
-    current {
-      temp_c
-      humidity
-      condition {
-        text
+### GET /api/weather
+
+Fetches weather data for all configured Mindanao cities (sorted alphabetically).
+
+**Query Parameters:**
+
+- `date` (optional): Specific date for forecast data (YYYY-MM-DD)
+
+**Response:**
+
+```json
+{
+  "currentDate": "2024-12-25",
+  "weather": [
+    {
+      "city": "Davao",
+      "location": {
+        "lat": 7.07,
+        "lon": 125.6,
+        "region": "Davao Region"
+      },
+      "current": {
+        "temp_c": 29,
+        "humidity": 75,
+        "wind_kph": 12,
+        "condition": {
+          "text": "Partly Cloudy"
+        }
       }
     }
+  ],
+  "climateStats": {
+    "avgTemp": 28.5,
+    "avgHumidity": 78,
+    "avgWind": 11,
+    "minTemp": 26,
+    "maxTemp": 31,
+    "cityCount": 6
   }
 }
 ```
@@ -129,27 +157,9 @@ query GetWeatherData($date: String) {
 
 - **Limit**: 100 requests per minute per IP
 - **Window**: 60 seconds
-- **Response**: 429 status with retry-after header
+- **Response**: 429 status code when exceeded
 
-## Development
-
-### Project Structure
-
-```
-src/
-├── app/
-│   ├── api/graphql/     # GraphQL API endpoint
-│   ├── globals.css      # Global styles
-│   ├── layout.jsx       # Root layout
-│   └── page.jsx         # Main weather page
-├── components/
-│   └── apollo-provider.jsx  # GraphQL client wrapper
-└── lib/
-    ├── apollo-client.js     # Apollo Client config
-    └── queries.js           # GraphQL queries
-```
-
-### Scripts
+## Scripts
 
 ```bash
 npm run dev      # Start development server
@@ -173,31 +183,6 @@ npm run lint     # Run ESLint
 3. Set environment variables
 4. Start with `npm start`
 
-## Weather Commentary
-
-The app features humorous Bisaya weather commentary based on conditions:
-
-- ☀️ **Sunny**: "Nindot ang panahon karon, sige laag!"
-- 🌧️ **Rainy**: "Mo-ulan karon. Pero dayon japun ang klase hahay."
-- 🌡️ **Hot**: "Init kaayo karon! Ayaw kalimot ug payong ha!"
-- ⛈️ **Storm**: "Bawal laag! May bagyo! Puydi ka ma-unay!"
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
 ## License
 
 This project is licensed under the MIT License.
-
-## Support
-
-For issues or questions, please open an issue on GitHub.
-
----
-
-**Disclaimer**: Weather data provided by WeatherAPI.com. Bisaya commentary provided by local humor. 😄
